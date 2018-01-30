@@ -49,7 +49,7 @@ function install_arch() {
         die "Copying mirrorlist failed."
     elif ! pacstrap "$ROOT" base; then
         die "Arch linux install failed."
-    elif ! genfsatb -U "$ROOT" >> "$ROOT/etc/fstab"; then
+    elif ! genfstab -U "$ROOT" >> "$ROOT/etc/fstab"; then
         die "Writing fstab failed."
     fi
 }
@@ -73,13 +73,19 @@ function system_configure() {
                 die "Failed to copy configure file $file"
             fi
         elif [ -d "$file" ]; then
-            if ! mkdir "$new_filename"; then
-                die "Making directory $new_filename failed."
+            if [ ! -d "$new_filename" ]; then
+                if ! mkdir "$new_filename"; then
+                    die "Making directory $new_filename failed."
+                fi
             fi
         else
             echo "File type error : $file"
         fi
     done
+
+    if [ $? -ne 0 ]; then
+        exit 1
+    fi
 
     system_configure_fix_mode
 }
