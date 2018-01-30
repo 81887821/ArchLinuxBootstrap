@@ -96,7 +96,7 @@ function run_chroot_script() {
 
 function restore_user_home() {
     if [ -d "$BACKUP/home/$USER_NAME" ]; then
-        if ! cp -r -p "$BACKUP/home/$USER_NAME" "$ROOT/home/$USER_NAME"; then
+        if ! cp -r -p -T "$BACKUP/home/$USER_NAME" "$ROOT/home/$USER_NAME"; then
             die "Copying user home directory failed."
         elif ! chown -R 1000:1000 "$ROOT/home/$USER_NAME"; then
             die "Change ownership of user home directory failed."
