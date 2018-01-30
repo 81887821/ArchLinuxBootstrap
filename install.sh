@@ -91,7 +91,7 @@ function system_configure() {
 }
 
 function system_configure_fix_mode() {
-    if chmod 440 "$ROOT/etc/sudoers"; then
+    if ! chmod 440 "$ROOT/etc/sudoers"; then
         die "Mode setting failed for sudoers."
     fi
 }
