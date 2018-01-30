@@ -12,7 +12,7 @@ readonly INPUT_METHOD_PACKAGES='ibus ibus-hangul ibus-anthy'
 readonly FONT_PACKAGES='adobe-source-han-sans-jp-fonts ttf-hanazono adobe-source-han-sans-kr-fonts'
 readonly DEVELOPMENT_PACKAGES='base-devel git geany python3'
 readonly UTILITY_PACKAGES='htop powertop cpupower virtualbox vim'
-readonly EXTRA_PACKAGES='x11vnc openssh'
+readonly EXTRA_PACKAGES='x11vnc openssh fish'
 
 readonly OPTIONAL_DEPENDENCIES='vte geany-plugins virtualbox-guest-iso'
 
