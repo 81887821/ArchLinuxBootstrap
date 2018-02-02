@@ -57,7 +57,7 @@ function install_arch() {
 function system_configure() {
     if ! ln -sf "/usr/share/zoneinfo/$NEW_TIMEZONE" "$ROOT/etc/localtime"; then
         die "Timezone configure failed."
-    elif ! echo "$NEW_LANG" > "$ROOT/etc/locale.conf"; then
+    elif ! echo "LANG=$NEW_LANG" > "$ROOT/etc/locale.conf"; then
         die "Locale configure failed."
     elif ! echo "$NEW_HOSTNAME" > "$ROOT/etc/hostname"; then
         die "Hostname setting failed."
