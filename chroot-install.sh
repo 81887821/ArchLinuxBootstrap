@@ -5,15 +5,16 @@
 readonly LINUX_LTS_PACKAGES='linux-lts linux-lts-headers'
 readonly BTRFS_PACKAGES='btrfs-progs'
 readonly NTFS_PACKAGES='ntfs-3g'
+readonly BOOTLOADER_PACKAGES='grub efibootmgr'
 readonly GUI_PACKAGES='xorg-server xorg-xrandr xfce4 xfce4-goodies lightdm lightdm-gtk-greeter'
 readonly NETWORK_PACKAGES='networkmanager network-manager-applet networkmanager-pptp wpa_supplicant'
 readonly SOUND_PACKAGES='pulseaudio pavucontrol'
 readonly INPUT_METHOD_PACKAGES='ibus ibus-hangul ibus-anthy'
-readonly FONT_PACKAGES='adobe-source-han-sans-jp-fonts ttf-hanazono adobe-source-han-sans-kr-fonts'
+readonly FONT_PACKAGES='ttf-dejavu adobe-source-han-sans-jp-fonts ttf-hanazono adobe-source-han-sans-kr-fonts'
 readonly DEVELOPMENT_PACKAGES='base-devel git geany python3'
 readonly UTILITY_PACKAGES='htop powertop cpupower vim freerdp p7zip'
 readonly GUI_UTILITY_PACKAGES='virtualbox xarchiver'
-readonly EXTRA_PACKAGES='x11vnc openssh fish'
+readonly EXTRA_PACKAGES='x11vnc openssh fish intel-ucode'
 
 readonly OPTIONAL_DEPENDENCIES='vte geany-plugins virtualbox-guest-iso pulseaudio-alsa'
 
@@ -38,7 +39,7 @@ function locale_generation() {
 }
 
 function install_packages() {
-    local packages_to_install="$GUI_PACKAGES $NETWORK_PACKAGES $SOUND_PACKAGES $INPUT_METHOD_PACKAGES $FONT_PACKAGES $DEVELOPMENT_PACKAGES $UTILITY_PACKAGES $GUI_UTILITY_PACKAGES $EXTRA_PACKAGES"
+    local packages_to_install="$BOOTLOADER_PACKAGES $GUI_PACKAGES $NETWORK_PACKAGES $SOUND_PACKAGES $INPUT_METHOD_PACKAGES $FONT_PACKAGES $DEVELOPMENT_PACKAGES $UTILITY_PACKAGES $GUI_UTILITY_PACKAGES $EXTRA_PACKAGES"
 
     if $USE_LINUX_LTS; then
         if ! pacman -R --noconfirm linux; then
