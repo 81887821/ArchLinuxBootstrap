@@ -90,7 +90,7 @@ function restore_private_backup() {
 }
 
 function restore_files() {
-    readonly local backup_directory="$1"
+    local backup_directory="$1"
     local new_filename
 
     find "$backup_directory" | while read file; do
