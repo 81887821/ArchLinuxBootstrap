@@ -12,4 +12,14 @@ readonly BACKUP_TARGETS=(
     '/etc/NetworkManager'
 )
 
-tar -c --absolute-names --preserve-permissions --same-owner "${BACKUP_TARGETS[@]}" | 7z a -si -p -mhe=on "$PRIVATE_BACKUP"
+while true; do
+    read -p "Enter password: " password
+    read -p "Retype password: " password_recheck
+    if [ "$password" != "$password_recheck" ]; then
+        echo "Passwords are not same."
+    else
+        break
+    fi
+done
+
+tar -c --preserve-permissions --same-owner "${BACKUP_TARGETS[@]}" | 7z a -si "-p$password" -mhe=on "$PRIVATE_BACKUP"

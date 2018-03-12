@@ -79,7 +79,14 @@ function post_package_install_configure() {
 }
 
 function restore_private_backup() {
-    7z e -so "$PRIVATE_BACKUP" | tar -x --preserve-permissions --same-owner --absolute-names
+    local password
+    while true; do
+        read -sp "Password: " password
+        7z e -so "-p$password" "$PRIVATE_BACKUP" | tar -x --preserve-permissions --same-owner --absolute-names --directory "$ROOT"
+        if [ $? -eq 0 ]; then
+            break
+        fi
+    fi
 }
 
 function restore_files() {
