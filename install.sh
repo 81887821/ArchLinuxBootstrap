@@ -6,8 +6,11 @@
 
 # Directories and files
 readonly ROOT='/mnt'
-readonly BACKUP='./backup'
+readonly INSTALL_ENVIRONMENT='./install-environment'
+readonly PRE_PACKAGE_INSTALL='./pre-package-install'
+readonly POST_PACKAGE_INSTALL='./post-package-install'
 readonly CHROOT_SCRIPT='chroot-install.sh'
+readonly PRIVATE_BACKUP='private-backup.tar.7z'
 
 # Variables for new system
 readonly NEW_HOSTNAME=''
@@ -26,9 +29,10 @@ readonly USER_SHELL='/usr/bin/fish'; export USER_SHELL
 function main() {
     check_partitions_mounted
     install_arch
-    system_configure
+    pre_package_install_configure
     run_chroot_script
-    restore_user_home
+    post_package_install_configure
+    restore_private_backup
 }
 
 function die() {
@@ -45,7 +49,7 @@ function check_partitions_mounted() {
 }
 
 function install_arch() {
-    if ! install -o root -g root -m 644 -T "$BACKUP/etc/pacman.d/mirrorlist" '/etc/pacman.d/mirrorlist'; then
+    if ! install -o root -g root -m 644 -T "$INSTALL_ENVIRONMENT/mirrorlist" '/etc/pacman.d/mirrorlist'; then
         die "Copying mirrorlist failed."
     elif ! pacstrap "$ROOT" base; then
         die "Arch linux install failed."
@@ -54,7 +58,7 @@ function install_arch() {
     fi
 }
 
-function system_configure() {
+function pre_package_install_configure() {
     if ! ln -sf "/usr/share/zoneinfo/$NEW_TIMEZONE" "$ROOT/etc/localtime"; then
         die "Timezone configure failed."
     elif ! echo "LANG=$NEW_LANG" > "$ROOT/etc/locale.conf"; then
@@ -63,10 +67,27 @@ function system_configure() {
         die "Hostname setting failed."
     fi
 
+    restore_files "$PRE_PACKAGE_INSTALL"
+}
+
+function run_chroot_script() {
+    arch-chroot "$ROOT" < "$CHROOT_SCRIPT"
+}
+
+function post_package_install_configure() {
+    restore_files "$POST_PACKAGE_INSTALL"
+}
+
+function restore_private_backup() {
+    7z e -so "$PRIVATE_BACKUP" | tar -x --preserve-permissions --same-owner --absolute-names
+}
+
+function restore_files() {
+    readonly local backup_directory="$1"
     local new_filename
 
-    find "$BACKUP/etc" | while read file; do
-        new_filename="$ROOT/${file#$BACKUP/}"
+    find "$backup_directory" | while read file; do
+        new_filename="$ROOT/${file#$backup_directory/}"
 
         if [ -f "$file" ]; then
             if ! install -o root -g root -m 644 -T "$file" "$new_filename"; then
@@ -87,27 +108,6 @@ function system_configure() {
         exit 1
     fi
 
-    system_configure_fix_mode
-}
-
-function system_configure_fix_mode() {
-    if ! chmod 440 "$ROOT/etc/sudoers"; then
-        die "Mode setting failed for sudoers."
-    fi
-}
-
-function run_chroot_script() {
-    arch-chroot "$ROOT" < "$CHROOT_SCRIPT"
-}
-
-function restore_user_home() {
-    if [ -d "$BACKUP/home/$USER_NAME" ]; then
-        if ! cp -r -p -T "$BACKUP/home/$USER_NAME" "$ROOT/home/$USER_NAME"; then
-            die "Copying user home directory failed."
-        elif ! chown -R 1000:1000 "$ROOT/home/$USER_NAME"; then
-            die "Change ownership of user home directory failed."
-        fi
-    fi
 }
 
 main

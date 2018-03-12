@@ -83,4 +83,4 @@ function create_user() {
     fi
 }
 
-main
+main < /dev/null
