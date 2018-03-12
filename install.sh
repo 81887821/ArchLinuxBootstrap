@@ -28,6 +28,7 @@ readonly USER_SHELL='/usr/bin/fish'; export USER_SHELL
 
 function main() {
     check_partitions_mounted
+    check_required_tools
     install_arch
     pre_package_install_configure
     run_chroot_script
@@ -45,6 +46,12 @@ function check_partitions_mounted() {
         die "Root partition is not mounted."
     elif ! mountpoint -q "$ROOT/boot"; then
         die "Boot partition is not mounted."
+    fi
+}
+
+function check_required_tools() {
+    if ! which 7z; then
+        die "7z is not installed."
     fi
 }
 
