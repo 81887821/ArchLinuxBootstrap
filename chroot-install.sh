@@ -76,7 +76,7 @@ function enable_services() {
 
 function create_user() {
     local passwd_input="$user_password
-    $user_password"
+$user_password"
 
     if ! useradd -m -G wheel -s "$USER_SHELL" "$USER_NAME"; then
         die "Creating new user failed."

@@ -122,7 +122,9 @@ function restore_private_backup() {
     if [ -f "$PRIVATE_BACKUP" ]; then
         while true; do
             read -sp "Password: " password
-            7z e -so "-p$password" "$PRIVATE_BACKUP" | tar -x --preserve-permissions --same-owner --absolute-names --directory "$ROOT"
+            echo
+
+            7z e -so "-p$password" "$PRIVATE_BACKUP" | tar -x --preserve-permissions --same-owner --directory "$ROOT"
             if [ $? -eq 0 ]; then
                 break
             fi
