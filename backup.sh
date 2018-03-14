@@ -13,8 +13,11 @@ readonly BACKUP_TARGETS=(
 )
 
 while true; do
-    read -p "Enter password: " password
-    read -p "Retype password: " password_recheck
+    read -sp "Enter password: " password
+    echo
+    read -sp "Retype password: " password_recheck
+    echo
+
     if [ "$password" != "$password_recheck" ]; then
         echo "Passwords are not same."
     else

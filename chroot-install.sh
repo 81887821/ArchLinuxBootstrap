@@ -2,23 +2,25 @@
 
 # This script should be run in chroot environment.
 
-readonly LINUX_LTS_PACKAGES='linux-lts linux-lts-headers'
+readonly LINUX_PACKAGES='nvidia virtualbox-host-modules-arch' # assume linux is already installed.
+readonly LINUX_LTS_PACKAGES='linux-lts linux-lts-headers nvidia-dkms virtualbox-host-dkms'
 readonly BTRFS_PACKAGES='btrfs-progs'
 readonly NTFS_PACKAGES='ntfs-3g'
 readonly BOOTLOADER_PACKAGES='grub efibootmgr'
 readonly GUI_PACKAGES='xorg-server xorg-xrandr xfce4 xfce4-goodies lightdm lightdm-gtk-greeter'
 readonly NETWORK_PACKAGES='networkmanager network-manager-applet networkmanager-pptp wpa_supplicant'
-readonly SOUND_PACKAGES='pulseaudio pavucontrol'
+readonly SOUND_PACKAGES='pulseaudio pulseaudio-alsa pavucontrol'
 readonly INPUT_METHOD_PACKAGES='ibus ibus-hangul ibus-anthy'
 readonly FONT_PACKAGES='ttf-dejavu adobe-source-han-sans-jp-fonts ttf-hanazono adobe-source-han-sans-kr-fonts'
-readonly DEVELOPMENT_PACKAGES='base-devel git geany python3'
-readonly UTILITY_PACKAGES='htop powertop cpupower vim freerdp p7zip'
-readonly GUI_UTILITY_PACKAGES='virtualbox xarchiver'
+readonly DEVELOPMENT_PACKAGES='base-devel git geany geany-plugins python3'
+readonly UTILITY_PACKAGES='htop powertop cpupower vim p7zip'
+readonly GUI_UTILITY_PACKAGES='virtualbox virtualbox-guest-iso xarchiver freerdp'
 readonly EXTRA_PACKAGES='x11vnc openssh fish intel-ucode'
 
-readonly OPTIONAL_DEPENDENCIES='vte geany-plugins virtualbox-guest-iso pulseaudio-alsa'
+# These packages should be listed one of the package lists above.
+readonly OPTIONAL_DEPENDENCIES='geany-plugins virtualbox-host-modules-arch virtualbox-host-dkms virtualbox-guest-iso pulseaudio-alsa'
 
-readonly SERVICES_TO_ENABLE='NetworkManager lightdm'
+readonly SERVICES_TO_ENABLE='NetworkManager lightdm sshd'
 
 function main() {
     locale_generation
@@ -45,9 +47,9 @@ function install_packages() {
         if ! pacman -R --noconfirm linux; then
             die "Removing linux package failed."
         fi
-        packages_to_install="$packages_to_install $LINUX_LTS_PACKAGES nvidia-dkms"
+        packages_to_install="$packages_to_install $LINUX_LTS_PACKAGES"
     else
-        packages_to_install="$packages_to_install nvidia"
+        packages_to_install="$packages_to_install $LINUX_PACKAGES"
     fi
 
     if $USE_BTRFS; then
@@ -57,18 +59,13 @@ function install_packages() {
     if $USE_NTFS; then
         packages_to_install="$packages_to_install $NTFS_PACKAGES"
     fi
-
-    if $USE_LINUX_LTS; then
-        packages_to_install="$packages_to_install nvidia-dkms"
-    else
-        packages_to_install="$packages_to_install nvidia"
-    fi
     
     if ! pacman -S --noconfirm $packages_to_install; then
         die "Installing packages failed."
-    elif ! pacman -S --noconfirm --asdeps $OPTIONAL_DEPENDENCIES; then
-        die "Installing optional dependencies failed."
     fi
+
+    # This command will return non-zero value since not all packages in OPTIONAL_DEPENDENCIES are installed.
+    pacman -D --asdeps $OPTIONAL_DEPENDENCIES
 }
 
 function enable_services() {
@@ -78,8 +75,15 @@ function enable_services() {
 }
 
 function create_user() {
+    local passwd_input="$user_password
+    $user_password"
+
     if ! useradd -m -G wheel -s "$USER_SHELL" "$USER_NAME"; then
         die "Creating new user failed."
+    elif [ "$user_password" == "" ]; then
+        echo "Warning : User password is not set." 1>&2
+    elif ! passwd "$USER_NAME" <<< "$passwd_input"; then
+        die "Setting user password failed."
     fi
 }
 

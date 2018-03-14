@@ -9,8 +9,9 @@ readonly ROOT='/mnt'
 readonly INSTALL_ENVIRONMENT='./install-environment'
 readonly PRE_PACKAGE_INSTALL='./pre-package-install'
 readonly POST_PACKAGE_INSTALL='./post-package-install'
-readonly CHROOT_SCRIPT='chroot-install.sh'
+readonly PACKAGE_INSTALL_SCRIPT='chroot-install.sh'
 readonly PRIVATE_BACKUP='private-backup.tar.7z'
+readonly BOOT_LOADER_INSTALL_SCRIPT='boot-loader-install.sh'
 
 # Variables for new system
 readonly NEW_HOSTNAME=''
@@ -29,11 +30,14 @@ readonly USER_SHELL='/usr/bin/fish'; export USER_SHELL
 function main() {
     check_partitions_mounted
     check_required_tools
+    check_variables
+    set_user_password
     install_arch
     pre_package_install_configure
-    run_chroot_script
+    run_package_install_script
     post_package_install_configure
     restore_private_backup
+    install_boot_loader
 }
 
 function die() {
@@ -53,6 +57,31 @@ function check_required_tools() {
     if ! which 7z; then
         die "7z is not installed."
     fi
+}
+
+function check_variables() {
+    if [ "$NEW_HOSTNAME" == "" ]; then
+        die "NEW_HOSTNAME is not set."
+    elif [ "$USER_NAME" == "" ]; then
+        die "USER_NAME is not set."
+    fi
+}
+
+function set_user_password() {
+    local password_recheck
+    while true; do
+        read -sp "Enter new password for $USER_NAME : " user_password
+        echo
+        read -sp "Retype password : " password_recheck
+        echo
+
+        if [ "$user_password" == "$password_recheck" ]; then
+            export user_password
+            return
+        else
+            echo "Passwords are not same."
+        fi
+    done
 }
 
 function install_arch() {
@@ -77,8 +106,10 @@ function pre_package_install_configure() {
     restore_files "$PRE_PACKAGE_INSTALL"
 }
 
-function run_chroot_script() {
-    arch-chroot "$ROOT" < "$CHROOT_SCRIPT"
+function run_package_install_script() {
+    if ! arch-chroot "$ROOT" < "$PACKAGE_INSTALL_SCRIPT"; then
+        die "Package install failed."
+    fi
 }
 
 function post_package_install_configure() {
@@ -125,6 +156,12 @@ function restore_files() {
 
     if [ $? -ne 0 ]; then
         exit 1
+    fi
+}
+
+function install_boot_loader() {
+    if ! arch-chroot "$ROOT" < "$BOOT_LOADER_INSTALL_SCRIPT"; then
+        die "Installing boot loader failed."
     fi
 }
 
