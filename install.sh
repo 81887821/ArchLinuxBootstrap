@@ -87,12 +87,17 @@ function post_package_install_configure() {
 
 function restore_private_backup() {
     local password
-    while true; do
-        read -sp "Password: " password
-        7z e -so "-p$password" "$PRIVATE_BACKUP" | tar -x --preserve-permissions --same-owner --absolute-names --directory "$ROOT"
-        if [ $? -eq 0 ]; then
-            break
-        fi
+
+    if [ -f "$PRIVATE_BACKUP" ]; then
+        while true; do
+            read -sp "Password: " password
+            7z e -so "-p$password" "$PRIVATE_BACKUP" | tar -x --preserve-permissions --same-owner --absolute-names --directory "$ROOT"
+            if [ $? -eq 0 ]; then
+                break
+            fi
+        done
+    else
+        echo "Backup file doesn't exist."
     fi
 }
 
@@ -121,7 +126,6 @@ function restore_files() {
     if [ $? -ne 0 ]; then
         exit 1
     fi
-
 }
 
 main
